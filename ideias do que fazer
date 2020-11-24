@@ -1,0 +1,15 @@
+Usar o size_response para saber o tamanho do segmento recebido
+e a taxa de transferencia da mensagem recebida( vemos o de 1 pra definir o 2 e assim por diante)
+e no caso do primeiro sempre passamos o de melhor qualidade.
+
+delimitar um tempo limite para aceitar de taxa, então se o tempo exceder essa taxa, 
+vamos usar o get_palyback_qi para ver até onde o dado rodou e qual a qualidade, 
+assim podemos baixar a qualidade e continuar baixando os segmentos a partir daquele ponto. 
+observando também até onde o video está carregado em buffer, e continuar baixando a partir dali.
+
+vamos também ficar lendo o get_playback_pauses para saber o momento que foi pausado e por quanto tempo. 
+
+interessante descobrir como perceber se o video foi passado para frente, então começariamos a baixar a partir
+desse segmento
+
+
