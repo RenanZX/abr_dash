@@ -2,6 +2,8 @@ Usar o size_response para saber o tamanho do segmento recebido
 e a taxa de transferencia da mensagem recebida( vemos o de 1 pra definir o 2 e assim por diante)
 e no caso do primeiro sempre passamos o de melhor qualidade.
 
+Ver o tempo que demora pra receber e ser lido para determinar o tamanho do segmento a ser baixado
+
 delimitar um tempo limite para aceitar de taxa, então se o tempo exceder essa taxa, 
 vamos usar o get_palyback_qi para ver até onde o dado rodou e qual a qualidade, 
 assim podemos baixar a qualidade e continuar baixando os segmentos a partir daquele ponto. 
