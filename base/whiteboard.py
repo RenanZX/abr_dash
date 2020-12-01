@@ -130,6 +130,11 @@ class Whiteboard:
         return ("WhriteBoard: ["+"\n amount video to play: " + self.amount_video_to_play.__repr__() + 
         "\n max buffer size: " + self.max_buffer_size.__repr__() + 
         "\n Buffer Size: " + str(len(self.buffer)) + 
+        "\n Buffer: " + self.buffer.__repr__() +
+        "\n playback: " + self.playback.__repr__() +
         "\n playback qi: " + self.playback_qi.__repr__() +
+        "\n playback pauses: " + self.playback_pauses.__repr__() +
         "\n playback buffer size: " + self.playback_buffer_size.__repr__() +
+        "\n playback segment size time at buffer: " + self.playback_segment_size_time_at_buffer.__repr__() +
+        "\n playback partial sstb: " + self.partial_sstb.__repr__() +
         " \n]")
