@@ -127,8 +127,9 @@ class Whiteboard:
         return tuple(self.playback)
 
     def __repr__(self):
-        return ("WhriteBoard: "+"[ amount video to play: " + str(self.amount_video_to_play) + 
-        ", max buffer size: " + str(self.max_buffer_size) + 
-        ", Buffer Size: " + str(len(self.buffer)) + 
-        ", playback qi: " + self.playback_qi.__repr__() +
-        " ]")
+        return ("WhriteBoard: ["+"\n amount video to play: " + self.amount_video_to_play.__repr__() + 
+        "\n max buffer size: " + self.max_buffer_size.__repr__() + 
+        "\n Buffer Size: " + str(len(self.buffer)) + 
+        "\n playback qi: " + self.playback_qi.__repr__() +
+        "\n playback buffer size: " + self.playback_buffer_size.__repr__() +
+        " \n]")
