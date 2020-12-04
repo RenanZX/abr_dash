@@ -14,33 +14,39 @@ class R2A_AverageThroughput(IR2A):
 
     def handle_xml_request(self, msg):
         self.request_time = time.perf_counter()
+        print(self.whiteboard)
         self.send_down(msg)
 
     def handle_xml_response(self, msg):
 
         parsed_mpd = parse_mpd(msg.get_payload())
         self.qi = parsed_mpd.get_qi()
-
         t = time.perf_counter() - self.request_time
         self.throughputs.append(msg.get_bit_length() / t)
 
+        print(self.whiteboard)
         self.send_up(msg)
 
     def handle_segment_size_request(self, msg):
         self.request_time = time.perf_counter()
-        avg = mean(self.throughputs) / 2
 
+        avg = mean(self.throughputs) / 2
         selected_qi = self.qi[0]
         for i in self.qi:
             if avg > i:
                 selected_qi = i
 
         msg.add_quality_id(selected_qi)
+        
+        print(self.throughputs)
+        print("msg bit length: ", msg.get_bit_length())
+        print(self.whiteboard)
         self.send_down(msg)
 
     def handle_segment_size_response(self, msg):
         t = time.perf_counter() - self.request_time
         self.throughputs.append(msg.get_bit_length() / t)
+        print(self.whiteboard)
         self.send_up(msg)
 
     def initialize(self):
