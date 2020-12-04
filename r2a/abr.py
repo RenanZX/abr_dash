@@ -9,42 +9,57 @@ class ABR(IR2A):
       IR2A.__init__(self,id)
       self.request_time = 0
       self.qi = []
-      self.container = [0] * 20
-      self.bestq = 0
+      self.tempos = [0] * 20
+      self.bestperf = 0
+      self.besttime = 10000000000000
 
-    def add_container(self, element):
-        i = 0 # indice
+    def set_tempos(self, element):
         bestt = element[0]/element[1] #throuput
         #print("analisando qualidade para throuput:", element)
-        for x in self.qi: #aproxima o throuput em relaçao as qualidades
-            if x > bestt: #testa o maior throuput em relacao a entrada
+        mid = int(len(self.qi)/2)
+        maxv = len(self.qi) - 1
+        minv = 0
+
+        if bestt >= self.qi[mid]:
+            rang = range(mid+1, maxv)
+        elif bestt < self.qi[mid]:
+            rang = range(minv, mid)
+
+        for i in rang: #aproxima o throuput em relaçao as qualidades
+            if self.qi[i] > bestt: #testa o maior throuput em relacao a entrada
                 #print("qualidade selecionada :", i)
-                self.container[i] = element[1] #se sim salva no container o tempo de requisicao
+                self.tempos[i] = element[1] #se sim salva na lista de tempos o tempo de requisicao
                 break
-            i+=1 #incrementa o index
 
-        bestval = 10000000000000
-        i = 0
+        mid = int(len(self.tempos)/2) + 4
+        maxv = len(self.tempos) - 1
+        minv = 9
 
-        for x in self.container: #escolhe o melhor tempo salvo no container
-            if x <= bestval:
-                self.bestq = i #marca o indice com o melhor tempo
-                bestval = x
-            i+=1
+        if self.besttime > self.tempos[mid]:
+            rang = range(mid+1, maxv)
+        elif self.besttime <= self.tempos[mid]:
+            rang = range(minv, mid)
+        
+        for i in rang: #escolhe o melhor tempo salvo na lista de tempos
+            if self.tempos[i] <= self.besttime:
+                self.bestperf = i #marca o indice com a melhor performance
+                self.besttime = self.tempos[i]
 
         amount_rest = self.whiteboard.get_amount_video_to_play() #usa o amount rest e o playback_qi como metrica de comparacao
         playback_qi = self.whiteboard.get_playback_qi()
+        buf = self.whiteboard.get_buffer() #buffer do whriteboard
+        maxbuf = self.whiteboard.get_max_buffer_size() #tamanho maximo do buffer, caso o buffer esteja cheio sera priorizado a performance
 
-        if playback_qi:
+        if len(playback_qi) > 1:
             difval = playback_qi[-1][0] - playback_qi[-2][0] #pega os ultimos valores da lista dos ultimos tempos de video tocados e compara
-            compare = self.bestq
-            if difval > 1.9 or amount_rest > 50: #se a diferenca for maior que 1.9 o algoritmo prioriza o desempenho
-                self.bestq = 5
-            elif difval < 1.5: #se a diferenca for menor que 1.5 o algoritmo prioriza a qualidade do video
-                self.bestq = random.randint(6, compare)
+            compare = self.bestperf
+            if difval > 1.9 or amount_rest > 50 or len(buf) > maxbuf: #se a diferenca for maior que 1.9 o algoritmo prioriza o desempenho
+                self.bestperf = 5
+            elif difval < 1.5 and compare > 10: #se a diferenca for menor que 1.5 o algoritmo prioriza a qualidade do video
+                self.bestperf = random.randint(10, compare)
 
-    def get_container(self): #retorna o index de melhor qualidade
-        return self.bestq
+    def get_best_time(self): #retorna o index de melhor qualidade
+        return self.bestperf
 
     def handle_xml_request(self, msg): #calcula os tempos de request
         self.request_time = time.perf_counter()
@@ -55,24 +70,25 @@ class ABR(IR2A):
         self.qi = parsed_mpd.get_qi()
         
         t = time.perf_counter() - self.request_time
-        self.add_container((msg.get_bit_length(), t)) #Salva no container os dados a serem mensurados
+        self.set_tempos((msg.get_bit_length(), t)) #Salva na lista de tempos os dados a serem mensurados
     
         self.send_up(msg)
 
     def handle_segment_size_request(self, msg):
         self.request_time = time.perf_counter() #calcula o tempo de requisiçao
 
-        #print(self.whiteboard)
+        print(self.whiteboard)
         #print(self.container)
         
-        bestval = self.get_container() #pega do container a melhor qualidade
+        bestval = self.get_best_time() #pega da lista a melhor qualidade
         selected_qi = self.qi[bestval] #seleciona a qualidade
         msg.add_quality_id(selected_qi)
         self.send_down(msg)
 
     def handle_segment_size_response(self, msg):
         t = time.perf_counter() - self.request_time
-        self.add_container((msg.get_bit_length(), t)) #Salva no container os dados a serem mensurados
+        print("time segment size:", t)
+        self.set_tempos((msg.get_bit_length(), t)) #Salva na lista de tempos os dados a serem mensurados
         self.send_up(msg)
 
     def initialize(self):
