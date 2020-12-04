@@ -49,14 +49,17 @@ class ABR(IR2A):
         playback_qi = self.whiteboard.get_playback_qi()
         buf = self.whiteboard.get_buffer() #buffer do whriteboard
         maxbuf = self.whiteboard.get_max_buffer_size() #tamanho maximo do buffer, caso o buffer esteja cheio sera priorizado a performance
+        pbpause = len(self.whiteboard.get_playback_pauses())
 
         if len(playback_qi) > 1:
             difval = playback_qi[-1][0] - playback_qi[-2][0] #pega os ultimos valores da lista dos ultimos tempos de video tocados e compara
             compare = self.bestperf
             if difval > 1.9 or amount_rest > 50 or len(buf) > maxbuf: #se a diferenca for maior que 1.9 o algoritmo prioriza o desempenho
                 self.bestperf = 5
-            elif difval < 1.5 and compare > 10: #se a diferenca for menor que 1.5 o algoritmo prioriza a qualidade do video
-                self.bestperf = random.randint(10, compare)
+            elif difval < 1.5: #se a diferenca for menor que 1.5 o algoritmo prioriza a qualidade do video
+                self.bestperf = random.randint(10, 15)
+            if pbpause > 2 and pbpause < self.bestperf:
+               self.bestperf-=pbpause
 
     def get_best_time(self): #retorna o index de melhor qualidade
         return self.bestperf
@@ -87,7 +90,6 @@ class ABR(IR2A):
 
     def handle_segment_size_response(self, msg):
         t = time.perf_counter() - self.request_time
-        print("time segment size:", t)
         self.set_tempos((msg.get_bit_length(), t)) #Salva na lista de tempos os dados a serem mensurados
         self.send_up(msg)
 
