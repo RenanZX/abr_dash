@@ -15,21 +15,21 @@ class IR2ABestTimeThrouput(IR2A):
       self.lastpause = -1
 
     def set_tempos(self, element):
-        bestt = element[0]/element[1] #throuput
+        throuput = element[0]/element[1] #throuput
         high = len(self.qi) - 1
         low = 0
-        weight = 11
+        weight = 13
 
         while low <= high: #aproxima o throuput em relaçao as qualidades utilizando busca binaria
             mid = (high + low)//2
 
-            if bestt < self.qi[mid]: 
+            if throuput < self.qi[mid]: 
                 low = mid + 1
 
-            elif bestt > self.qi[mid]: 
+            elif throuput > self.qi[mid]: 
                 high = mid - 1
             
-            if self.qi[mid] > bestt: #testa o maior throuput em relacao a entrada
+            if self.qi[mid] > throuput: #testa o maior throuput em relacao a entrada
                 self.tempos[mid] = element[1] #se sim salva na lista de tempos o tempo de requisicao
                 break
 
@@ -39,37 +39,38 @@ class IR2ABestTimeThrouput(IR2A):
         maxbuf = self.whiteboard.get_max_buffer_size() #tamanho maximo do buffer, caso o buffer esteja cheio sera priorizado a performance
         pbpause = self.whiteboard.get_playback_pauses()
 
-        if len(playback_qi) > 1 and len(pbpause) > 0:
+        if element[1] > self.besttime:
+            weight -=2
+        elif element[1] < self.besttime:
+            weight +=2
+        
+        if element[1] < 1 or weight < 11:
+            weight +=1
+
+        if len(playback_qi) > 1:
             difval = playback_qi[-1][0] - playback_qi[-2][0] #pega os ultimos valores da lista dos ultimos tempos de video tocados e compara
             if difval > 1.9 or amount_rest > 50: #se a diferenca for maior que 1.9 o algoritmo prioriza o desempenho
                 weight -= 2
-            elif difval < 1.5 and self.bestperf < 16: #se a diferenca for menor que 1.5 o algoritmo prioriza a qualidade do video
-                self.bestperf = random.randint(self.bestperf, 16)
-                return
+            elif difval < 1.5: #se a diferenca for menor que 1.5 o algoritmo prioriza a qualidade do video
+                weight += 2
+            elif difval <= 1.1:
+                weight += 5
 
             if len(buf) > maxbuf: #se o buffer tiver muito cheio, prioriza o desempenho
-                self.bestperf = 5
-                return
+                weight = 5
             
-            if self.lastpause != pbpause[-1][1]:
+            if len(pbpause) > 0 and self.lastpause != pbpause[-1][1]:
                 self.lastpause = pbpause[-1][1] #pega o tempo do ultimo pause ocorrido
-                if self.lastpause > 20: 
-                    self.bestperf = 5
-                    return
+                if self.lastpause > 20 or len(pbpause) > 2: 
+                    weight = 5
 
-        mid = len(self.tempos)//2
-        high = 15
-        low = 9
+        if weight > 19:
+            weight = 16
+        elif weight <= 0:
+            weight = 5
 
-        if weight > mid: #faz a selecao do melhor tempo com peso em relacao a qualidade
-            rang = range(mid+1, high)
-        elif weight <= mid:
-            rang = range(low, mid)
-        
-        for i in rang: #escolhe o melhor tempo salvo na lista de tempos
-            if self.tempos[i] <= self.besttime:
-                self.bestperf = i #marca o indice com a melhor performance
-                self.besttime = self.tempos[i]
+        self.besttime = self.tempos[weight]
+        self.bestperf = weight
 
     def get_best_time(self): #retorna o index de melhor qualidade
         return self.bestperf
