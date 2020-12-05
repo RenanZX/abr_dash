@@ -12,33 +12,36 @@ class ABR(IR2A):
       self.tempos = [0] * 20
       self.bestperf = 0
       self.besttime = 10000000000000
+      self.lastpause = -1
 
     def set_tempos(self, element):
         bestt = element[0]/element[1] #throuput
         #print("analisando qualidade para throuput:", element)
-        mid = int(len(self.qi)/2)
-        maxv = len(self.qi) - 1
-        minv = 0
+        high = len(self.qi) - 1
+        low = 0
 
-        if bestt >= self.qi[mid]:
-            rang = range(mid+1, maxv)
-        elif bestt < self.qi[mid]:
-            rang = range(minv, mid)
+        while low <= high: #aproxima o throuput em relaçao as qualidades
+            mid = (high + low)//2
 
-        for i in rang: #aproxima o throuput em relaçao as qualidades
-            if self.qi[i] > bestt: #testa o maior throuput em relacao a entrada
+            if bestt < self.qi[mid]: 
+                low = mid + 1
+
+            elif bestt > self.qi[mid]: 
+                high = mid - 1
+            
+            if self.qi[mid] > bestt: #testa o maior throuput em relacao a entrada
                 #print("qualidade selecionada :", i)
-                self.tempos[i] = element[1] #se sim salva na lista de tempos o tempo de requisicao
+                self.tempos[mid] = element[1] #se sim salva na lista de tempos o tempo de requisicao
                 break
 
-        mid = int(len(self.tempos)/2) + 4
-        maxv = len(self.tempos) - 1
-        minv = 9
+        mid = len(self.tempos)//2 + 4
+        high = len(self.tempos) - 1
+        low = 9
 
         if self.besttime > self.tempos[mid]:
-            rang = range(mid+1, maxv)
+            rang = range(mid+1, high)
         elif self.besttime <= self.tempos[mid]:
-            rang = range(minv, mid)
+            rang = range(low, mid)
         
         for i in rang: #escolhe o melhor tempo salvo na lista de tempos
             if self.tempos[i] <= self.besttime:
@@ -49,17 +52,22 @@ class ABR(IR2A):
         playback_qi = self.whiteboard.get_playback_qi()
         buf = self.whiteboard.get_buffer() #buffer do whriteboard
         maxbuf = self.whiteboard.get_max_buffer_size() #tamanho maximo do buffer, caso o buffer esteja cheio sera priorizado a performance
-        pbpause = len(self.whiteboard.get_playback_pauses())
+        pbpause = self.whiteboard.get_playback_pauses()
 
-        if len(playback_qi) > 1:
+        if len(playback_qi) > 1 and len(pbpause) > 0:
             difval = playback_qi[-1][0] - playback_qi[-2][0] #pega os ultimos valores da lista dos ultimos tempos de video tocados e compara
-            compare = self.bestperf
-            if difval > 1.9 or amount_rest > 50 or len(buf) > maxbuf: #se a diferenca for maior que 1.9 o algoritmo prioriza o desempenho
+            if difval > 1.9 or amount_rest > 50: #se a diferenca for maior que 1.9 o algoritmo prioriza o desempenho
+                self.bestperf = 11
+            elif difval < 1.5 and self.bestperf < 15: #se a diferenca for menor que 1.5 o algoritmo prioriza a qualidade do video
+                self.bestperf = random.randint(self.bestperf, 15)
+
+            if len(buf) > maxbuf: #se o buffer tiver muito cheio, prioriza o desempenho
                 self.bestperf = 5
-            elif difval < 1.5: #se a diferenca for menor que 1.5 o algoritmo prioriza a qualidade do video
-                self.bestperf = random.randint(10, 15)
-            if pbpause > 2 and pbpause < self.bestperf:
-               self.bestperf-=pbpause
+            
+            if self.lastpause != pbpause[-1][1]:
+                self.lastpause = pbpause[-1][1] #pega o tempo do ultimo pause ocorrido
+                if self.lastpause > 20: 
+                    self.bestperf = 5
 
     def get_best_time(self): #retorna o index de melhor qualidade
         return self.bestperf
