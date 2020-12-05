@@ -18,7 +18,7 @@ class IR2ABestTimeThrouput(IR2A):
         throuput = element[0]/element[1] #throuput
         high = len(self.qi) - 1
         low = 0
-        weight = 13
+        weight = 13 #peso inicial
 
         while low <= high: #aproxima o throuput em relaçao as qualidades utilizando busca binaria
             mid = (high + low)//2
@@ -39,7 +39,7 @@ class IR2ABestTimeThrouput(IR2A):
         maxbuf = self.whiteboard.get_max_buffer_size() #tamanho maximo do buffer, caso o buffer esteja cheio sera priorizado a performance
         pbpause = self.whiteboard.get_playback_pauses()
 
-        if element[1] > self.besttime:
+        if element[1] > self.besttime: # a pesagem é nivelada de acordo com o throuput recebido como parametro
             weight -=2
         elif element[1] < self.besttime:
             weight +=2
@@ -61,15 +61,15 @@ class IR2ABestTimeThrouput(IR2A):
             
             if len(pbpause) > 0 and self.lastpause != pbpause[-1][1]:
                 self.lastpause = pbpause[-1][1] #pega o tempo do ultimo pause ocorrido
-                if self.lastpause > 20 or len(pbpause) > 2: 
+                if self.lastpause > 20 or len(pbpause) > 2: #repesa caso hajam interrupções da transmissao
                     weight = 5
 
-        if weight > 19:
+        if weight > 19: #nivela o intervalo dos pesos
             weight = 16
         elif weight <= 0:
             weight = 5
 
-        self.besttime = self.tempos[weight]
+        self.besttime = self.tempos[weight] #escolhe o melhor peso e salva
         self.bestperf = weight
 
     def get_best_time(self): #retorna o index de melhor qualidade
