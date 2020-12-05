@@ -4,7 +4,7 @@ from r2a.ir2a import IR2A
 from statistics import mean
 import random
 
-class ABR(IR2A):
+class IR2ABestTimeThrouput(IR2A):
     def __init__(self, id): #inicializa as variaveis
       IR2A.__init__(self,id)
       self.request_time = 0
