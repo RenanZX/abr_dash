@@ -31,6 +31,8 @@ class IR2ABestTimeThrouput(IR2A):
             
             if self.qi[mid] > throuput: #testa o maior throuput em relacao a entrada
                 self.tempos[mid] = element[1] #se sim salva na lista de tempos o tempo de requisicao
+                if mid > weight and element[1] < self.besttime: #checa se a qualidade encontrada e boa e faz o repeso dependendo do tempo de requisicao
+                    weight = mid
                 break
 
         amount_rest = self.whiteboard.get_amount_video_to_play() #usa o amount rest e o playback_qi como metrica de comparacao
