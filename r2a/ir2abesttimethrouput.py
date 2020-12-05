@@ -18,6 +18,7 @@ class IR2ABestTimeThrouput(IR2A):
         bestt = element[0]/element[1] #throuput
         high = len(self.qi) - 1
         low = 0
+        weight = 11
 
         while low <= high: #aproxima o throuput em relaçao as qualidades utilizando busca binaria
             mid = (high + low)//2
@@ -32,20 +33,6 @@ class IR2ABestTimeThrouput(IR2A):
                 self.tempos[mid] = element[1] #se sim salva na lista de tempos o tempo de requisicao
                 break
 
-        mid = len(self.tempos)//2 + 4
-        high = len(self.tempos) - 1
-        low = 9
-
-        if self.besttime > self.tempos[mid]: #faz a selecao do melhor tempo
-            rang = range(mid+1, high)
-        elif self.besttime <= self.tempos[mid]:
-            rang = range(low, mid)
-        
-        for i in rang: #escolhe o melhor tempo salvo na lista de tempos
-            if self.tempos[i] <= self.besttime:
-                self.bestperf = i #marca o indice com a melhor performance
-                self.besttime = self.tempos[i]
-
         amount_rest = self.whiteboard.get_amount_video_to_play() #usa o amount rest e o playback_qi como metrica de comparacao
         playback_qi = self.whiteboard.get_playback_qi()
         buf = self.whiteboard.get_buffer() #buffer do whriteboard
@@ -55,17 +42,34 @@ class IR2ABestTimeThrouput(IR2A):
         if len(playback_qi) > 1 and len(pbpause) > 0:
             difval = playback_qi[-1][0] - playback_qi[-2][0] #pega os ultimos valores da lista dos ultimos tempos de video tocados e compara
             if difval > 1.9 or amount_rest > 50: #se a diferenca for maior que 1.9 o algoritmo prioriza o desempenho
-                self.bestperf = 11
-            elif difval < 1.5 and self.bestperf < 15: #se a diferenca for menor que 1.5 o algoritmo prioriza a qualidade do video
-                self.bestperf = random.randint(self.bestperf, 15)
+                weight -= 2
+            elif difval < 1.5 and self.bestperf < 16: #se a diferenca for menor que 1.5 o algoritmo prioriza a qualidade do video
+                self.bestperf = random.randint(self.bestperf, 16)
+                return
 
             if len(buf) > maxbuf: #se o buffer tiver muito cheio, prioriza o desempenho
                 self.bestperf = 5
+                return
             
             if self.lastpause != pbpause[-1][1]:
                 self.lastpause = pbpause[-1][1] #pega o tempo do ultimo pause ocorrido
                 if self.lastpause > 20: 
                     self.bestperf = 5
+                    return
+
+        mid = len(self.tempos)//2
+        high = 15
+        low = 9
+
+        if weight > mid: #faz a selecao do melhor tempo com peso em relacao a qualidade
+            rang = range(mid+1, high)
+        elif weight <= mid:
+            rang = range(low, mid)
+        
+        for i in rang: #escolhe o melhor tempo salvo na lista de tempos
+            if self.tempos[i] <= self.besttime:
+                self.bestperf = i #marca o indice com a melhor performance
+                self.besttime = self.tempos[i]
 
     def get_best_time(self): #retorna o index de melhor qualidade
         return self.bestperf
