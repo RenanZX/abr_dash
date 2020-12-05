@@ -16,11 +16,10 @@ class ABR(IR2A):
 
     def set_tempos(self, element):
         bestt = element[0]/element[1] #throuput
-        #print("analisando qualidade para throuput:", element)
         high = len(self.qi) - 1
         low = 0
 
-        while low <= high: #aproxima o throuput em relaçao as qualidades
+        while low <= high: #aproxima o throuput em relaçao as qualidades utilizando busca binaria
             mid = (high + low)//2
 
             if bestt < self.qi[mid]: 
@@ -30,7 +29,6 @@ class ABR(IR2A):
                 high = mid - 1
             
             if self.qi[mid] > bestt: #testa o maior throuput em relacao a entrada
-                #print("qualidade selecionada :", i)
                 self.tempos[mid] = element[1] #se sim salva na lista de tempos o tempo de requisicao
                 break
 
@@ -38,7 +36,7 @@ class ABR(IR2A):
         high = len(self.tempos) - 1
         low = 9
 
-        if self.besttime > self.tempos[mid]:
+        if self.besttime > self.tempos[mid]: #faz a selecao do melhor tempo
             rang = range(mid+1, high)
         elif self.besttime <= self.tempos[mid]:
             rang = range(low, mid)
