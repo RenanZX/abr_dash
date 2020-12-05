@@ -45,9 +45,6 @@ class IR2ABestTimeThrouput(IR2A):
             weight -=2
         elif element[1] < self.besttime:
             weight +=2
-        
-        if element[1] < 1 or weight < 11:
-            weight +=1
 
         if len(playback_qi) > 1:
             difval = playback_qi[-1][0] - playback_qi[-2][0] #pega os ultimos valores da lista dos ultimos tempos de video tocados e compara
@@ -55,8 +52,9 @@ class IR2ABestTimeThrouput(IR2A):
                 weight -= 2
             elif difval < 1.5: #se a diferenca for menor que 1.5 o algoritmo prioriza a qualidade do video
                 weight += 2
-            elif difval <= 1.1:
-                weight += 5
+            
+            if difval <= 1.1:
+                weight += 2
 
             if len(buf) > maxbuf: #se o buffer tiver muito cheio, prioriza o desempenho
                 weight = 5
@@ -66,7 +64,7 @@ class IR2ABestTimeThrouput(IR2A):
                 if self.lastpause > 20 or len(pbpause) > 2: #repesa caso hajam interrupções da transmissao
                     weight = 5
 
-        if weight > 19: #nivela o intervalo dos pesos
+        if weight > 17: #nivela o intervalo dos pesos
             weight = 16
         elif weight <= 0:
             weight = 5
