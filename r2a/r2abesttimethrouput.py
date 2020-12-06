@@ -66,7 +66,7 @@ class R2ABestTimeThrouput(IR2A):
 
         if weight > 17: #nivela o intervalo dos pesos
             weight = 16
-        elif weight <= 0:
+        elif weight < 0:
             weight = 5
 
         self.besttime = self.tempos[weight] #escolhe o melhor peso e salva

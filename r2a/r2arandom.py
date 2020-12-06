@@ -20,7 +20,6 @@ from player.parser import *
 from r2a.ir2a import IR2A
 
 
-
 class R2ARandom(IR2A):
 
     def __init__(self, id):
